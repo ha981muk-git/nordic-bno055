@@ -6,4 +6,6 @@ project(blinky)
 
 #target_sources(app PRIVATE src/Network/test_server.c)
 #target_sources(app PRIVATE src/Network/test_client.c)
-target_sources(app PRIVATE src/SensorModule/quaternion.c)
+#target_sources(app PRIVATE src/SensorModule/quaternion.c)
+target_sources(app PRIVATE src/SensorModule/euler.c)
+
