@@ -37,6 +37,31 @@ static const struct gpio_dt_spec led3_spec = GPIO_DT_SPEC_GET(LED3_NODE, gpios);
 /* PAGE0 REGISTER DEFINITION START*/
 #define BNO055_CHIP_ID_ADDR (0x00)
 
+/* Accel data register*/
+#define BNO055_ACCEL_DATA_X_LSB_ADDR (0X08)
+#define BNO055_ACCEL_DATA_X_MSB_ADDR (0X09)
+#define BNO055_ACCEL_DATA_Y_LSB_ADDR (0X0A)
+#define BNO055_ACCEL_DATA_Y_MSB_ADDR (0X0B)
+#define BNO055_ACCEL_DATA_Z_LSB_ADDR (0X0C)
+#define BNO055_ACCEL_DATA_Z_MSB_ADDR (0X0D)
+
+/*Mag data register*/
+#define BNO055_MAG_DATA_X_LSB_ADDR          (0X0E)
+#define BNO055_MAG_DATA_X_MSB_ADDR          (0X0F)
+#define BNO055_MAG_DATA_Y_LSB_ADDR          (0X10)
+#define BNO055_MAG_DATA_Y_MSB_ADDR          (0X11)
+#define BNO055_MAG_DATA_Z_LSB_ADDR          (0X12)
+#define BNO055_MAG_DATA_Z_MSB_ADDR          (0X13)
+
+/*Gyro data registers*/
+#define BNO055_GYRO_DATA_X_LSB_ADDR (0X14)
+#define BNO055_GYRO_DATA_X_MSB_ADDR (0X15)
+#define BNO055_GYRO_DATA_Y_LSB_ADDR (0X16)
+#define BNO055_GYRO_DATA_Y_MSB_ADDR (0X17)
+#define BNO055_GYRO_DATA_Z_LSB_ADDR (0X18)
+#define BNO055_GYRO_DATA_Z_MSB_ADDR (0X19)
+
+
 
 /*Quaternion data registers*/
 #define BNO055_QUATERNION_DATA_W_LSB_ADDR (0X20)
@@ -78,6 +103,15 @@ struct
 	int16_t quat_x;
 	int16_t quat_y;
 	int16_t quat_z;
+	int16_t acc_x;
+	int16_t acc_y;
+	int16_t acc_z;
+	int16_t gyro_x;
+	int16_t gyro_y;
+	int16_t gyro_z;
+	int16_t mag_x;
+	int16_t mag_y;
+	int16_t mag_z;
 	bool isCalibrated;
 
 } bno055;
@@ -186,6 +220,57 @@ static void set_op_mode_to_ndof()
 	}
 }
 
+static void read_gryoscope_data()
+{
+	write_i2c_buffer[0] = BNO055_GYRO_DATA_X_LSB_ADDR;
+	int err = i2c_write_read(i2c_dev, BNO055_ADDRESS_A, write_i2c_buffer, 1, read_i2c_buffer, 6);
+	if (err < 0)
+	{
+		printk("READ_GRYO_DATA failed: %d\n", err);
+	}
+	else
+	{
+		bno055.gyro_x = (((uint16_t)read_i2c_buffer[1]) << 8) | ((uint16_t)read_i2c_buffer[0]);
+		bno055.gyro_y = (((uint16_t)read_i2c_buffer[3]) << 8) | ((uint16_t)read_i2c_buffer[2]);
+		bno055.gyro_z = (((uint16_t)read_i2c_buffer[5]) << 8) | ((uint16_t)read_i2c_buffer[4]);
+		printk("Gyro Data: X:%d Y:%d Z:%d\n", bno055.gyro_x, bno055.gyro_y, bno055.gyro_z);
+	}
+}
+
+static void read_acceleration_data()
+{
+	write_i2c_buffer[0] = BNO055_ACCEL_DATA_X_LSB_ADDR;
+	int err = i2c_write_read(i2c_dev, BNO055_ADDRESS_A, write_i2c_buffer, 1, read_i2c_buffer, 6);
+	if (err < 0)
+	{
+		printk("READ_ACC_DATA failed: %d\n", err);
+	}
+	else
+	{
+		bno055.acc_x = (((uint16_t)read_i2c_buffer[1]) << 8) | ((uint16_t)read_i2c_buffer[0]);
+		bno055.acc_y = (((uint16_t)read_i2c_buffer[3]) << 8) | ((uint16_t)read_i2c_buffer[2]);
+		bno055.acc_z = (((uint16_t)read_i2c_buffer[5]) << 8) | ((uint16_t)read_i2c_buffer[4]);
+		printk("Accel Data: X:%d Y:%d Z:%d\n", bno055.acc_x, bno055.acc_y, bno055.acc_z);
+	}
+}
+
+static void read_magnetometer_data()
+{
+	write_i2c_buffer[0] = BNO055_MAG_DATA_X_LSB_ADDR;
+	int err = i2c_write_read(i2c_dev, BNO055_ADDRESS_A, write_i2c_buffer, 1, read_i2c_buffer, 6);
+	if (err < 0)
+	{
+		printk("READ_MAG_DATA failed: %d\n", err);
+	}
+	else
+	{
+		bno055.mag_x = (((uint16_t)read_i2c_buffer[1]) << 8) | ((uint16_t)read_i2c_buffer[0]);
+		bno055.mag_y = (((uint16_t)read_i2c_buffer[3]) << 8) | ((uint16_t)read_i2c_buffer[2]);
+		bno055.mag_z = (((uint16_t)read_i2c_buffer[5]) << 8) | ((uint16_t)read_i2c_buffer[4]);
+		printk("Mag Data: X:%d Y:%d Z:%d\n", bno055.mag_x, bno055.mag_y, bno055.mag_z);
+	}
+}
+
 static void read_quaternion_data()
 {
 	write_i2c_buffer[0] = BNO055_QUATERNION_DATA_W_LSB_ADDR;
@@ -206,6 +291,9 @@ static void read_quaternion_data()
 
 static void read_data()
 {
+	read_acceleration_data();
+	read_magnetometer_data();
+	read_gryoscope_data();
 	read_quaternion_data();
 	if (bno055.isCalibrated)
 	{
@@ -282,7 +370,7 @@ static void send_data(){
 	messageInfo.mPeerPort = 1234;
 
 	do{ 
-		printk("UDP openm");
+		printk("UDP open");
 		error = otUdpOpen(myInstance, &mySocket, NULL, NULL);
 		if (error != OT_ERROR_NONE){ break; }
 		otMessage *test_Message = otUdpNewMessage(myInstance, NULL);
