@@ -9,8 +9,9 @@ from time import *
 import numpy as np
 import math
 import serial
+import re
 
-sensorData = serial.Serial('/dev/ttyACM1', 115200)
+sensorData = serial.Serial('COM6', 115200)
 sleep(1)
 
 #toRad = 2*np.pi/360
@@ -85,12 +86,11 @@ while True:
         pass
     dataPacket = sensorData.readline()
     dataPacket = str(dataPacket, 'utf-8')
-    splitPacket = dataPacket.split(',')
-    moduleid = splitPacket[0]
-    qw = float(splitPacket[1]) * scale
-    qx = float(splitPacket[2]) * scale
-    qy = float(splitPacket[3]) * scale
-    qz = float(splitPacket[4]) * scale
+    splitPacket = re.findall(r'[+-]?\d+(?:\.\d+)?',dataPacket)
+    qw = float(splitPacket[0]) * scale
+    qx = float(splitPacket[1]) * scale
+    qy = float(splitPacket[2]) * scale
+    qz = float(splitPacket[3]) * scale
 
     #print("qw: ", qw, " qx: ", qx, " qy: ", qy, " qz: ", qz)
 
