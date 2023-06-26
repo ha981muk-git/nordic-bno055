@@ -1,4 +1,4 @@
 vpython
 numpy
-serial
+pyserial
 matplotlib
