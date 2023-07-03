@@ -97,7 +97,7 @@ struct
 	bool isCalibrated;
 
 } bno055;
-
+char moduleID[10] = "683519779";
 static const struct smf_state states[];
 
 enum state
@@ -108,7 +108,8 @@ enum state
 	SETEXTERNALCRYSTAL,
 	SETOPMODETOIMU,
 	READDATA,
-	READCALIBRATION
+	READCALIBRATION,
+	SENDDATA
 };
 
 struct s_object
@@ -242,7 +243,7 @@ static void read_data()
 	if (bno055.isCalibrated)
 	{
 		sleep_msec = 500;
-		smf_set_state(SMF_CTX(&s_obj), &states[READDATA]);
+		smf_set_state(SMF_CTX(&s_obj), &states[SENDDATA]);
 	}
 	else
 	{
@@ -273,11 +274,11 @@ static void read_calibration_data()
 		{
 			gpio_pin_set_dt(&led1_spec, 1);
 		}
-		if (bno055.system_cali == 3)
+		if (bno055.system_cali == 0)
 		{
 			gpio_pin_set_dt(&led2_spec, 1);
 		}
-		if (read_i2c_buffer[0] == 0xFC)
+		if (read_i2c_buffer[0] >= 0x3C)
 		{
 			bno055.isCalibrated = true;
 		}
@@ -291,8 +292,8 @@ static void read_calibration_data()
 static void send_data(void){
     otError error = OT_ERROR_NONE;
 
-	char buffer[50];
-	//sprintf(buffer, "%s, %6d, %6d, %6d, %6d\n", bno055.moduleID, bno055.quat_w, bno055.quat_x, bno055.quat_y, bno055.quat_z);
+	char buffer[80];
+	sprintf(buffer, "%s, %6d, %6d, %6d, %6d, %6d, %6d\n", moduleID, bno055.accel_x, bno055.accel_y, bno055.accel_z, bno055.gyro_x, bno055.gyro_y, bno055.gyro_z);
 
 	otInstance *myInstance; 
 	myInstance = openthread_get_default_instance(); 
@@ -328,7 +329,8 @@ static void send_data(void){
 			printk("Send.\n"); 
 		} else{ 
 			printk("udpSend error: %d\n", error); 
-	} 
+	}
+	smf_set_state(SMF_CTX(&s_obj), &states[READDATA]);
 }
 
 static const struct smf_state states[] = {
@@ -338,8 +340,8 @@ static const struct smf_state states[] = {
 	[SETEXTERNALCRYSTAL] = SMF_CREATE_STATE(NULL, set_external_crystal, NULL),
 	[SETOPMODETOIMU] = SMF_CREATE_STATE(NULL, set_op_mode_to_imu, NULL),
 	[READDATA] = SMF_CREATE_STATE(NULL, read_data, NULL),
-	[READCALIBRATION] = SMF_CREATE_STATE(NULL, read_calibration_data, NULL)};
-	//[SENDDATA] = SMF_CREATE_STATE(NULL, send_data, NULL)};
+	[READCALIBRATION] = SMF_CREATE_STATE(NULL, read_calibration_data, NULL),
+	[SENDDATA] = SMF_CREATE_STATE(NULL, send_data, NULL)};
 
 void main(void)
 {
