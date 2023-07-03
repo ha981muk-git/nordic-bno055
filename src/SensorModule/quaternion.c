@@ -349,7 +349,7 @@ static void send_data(){
     otError error = OT_ERROR_NONE;
 
 	char buffer[50];
-	sprintf(buffer, "%s, %6d, %6d, %6d, %6d\n", moduleID, bno055.quat_w, bno055.quat_x, bno055.quat_y, bno055.quat_z);
+	sprintf(buffer, "%s, %d, %d, %d, %d\n", moduleID, bno055.quat_w, bno055.quat_x, bno055.quat_y, bno055.quat_z);
 	printk("Message start");
 
 	otInstance *myInstance; 

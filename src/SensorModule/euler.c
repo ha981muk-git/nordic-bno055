@@ -293,7 +293,7 @@ static void send_data(void){
     otError error = OT_ERROR_NONE;
 
 	char buffer[80];
-	sprintf(buffer, "%s, %6d, %6d, %6d, %6d, %6d, %6d\n", moduleID, bno055.accel_x, bno055.accel_y, bno055.accel_z, bno055.gyro_x, bno055.gyro_y, bno055.gyro_z);
+	sprintf(buffer, "%s, %d, %d, %d, %d, %d, %d\n", moduleID, bno055.accel_x, bno055.accel_y, bno055.accel_z, bno055.gyro_x, bno055.gyro_y, bno055.gyro_z);
 
 	otInstance *myInstance; 
 	myInstance = openthread_get_default_instance(); 
