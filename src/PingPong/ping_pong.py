@@ -1,20 +1,37 @@
 import pygame
 import sys
 import random
+import serial
+from helper.reader import ReadLine
 from button import Button
 
+sensorData = serial.Serial('COM5', 115200,
+                           parity=serial.PARITY_NONE,
+                           stopbits=serial.STOPBITS_ONE,
+                           bytesize=serial.EIGHTBITS,
+                           timeout=1)
+
+controller = ReadLine(sensorData)
 pygame.init()
 clock = pygame.time.Clock()
+UPDATESPEEDEVENT = pygame.USEREVENT+1
+pygame.time.set_timer(UPDATESPEEDEVENT,5)
 
 screen_width = 1280
 screen_height = 560
 SCREEN = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Menu")
 
-BG = pygame.image.load("Background_image.png")
+BG = pygame.image.load("src\PingPong\Background_image.png")
 
 def get_font(size):
-    return pygame.font.Font("font.ttf", size)
+    return pygame.font.Font("src\PingPong\\font.ttf", size)
+
+def calculate_speed():
+    data = controller.readline() 
+    if len(data) > 2:
+        parsedPacket = str(data, 'utf-8')
+        return (7 * int(parsedPacket.split(",")[0])) / 1000
 
 def play():
     pygame.display.set_caption("Play")
@@ -40,15 +57,13 @@ def play():
     score1 = 0
     score2 = 0
 
-    bonus = pygame.mixer.Sound("bonus.mp3")
-    Schlag = pygame.mixer.Sound("Schlag.mp3")
-    background_sound = pygame.mixer.Sound("BrinstairRed.mp3")
+    bonus = pygame.mixer.Sound("src\PingPong\\bonus.mp3")
+    Schlag = pygame.mixer.Sound("src\PingPong\Schlag.mp3")
+    background_sound = pygame.mixer.Sound("src\PingPong\BrinstairRed.mp3")
     background_sound.play(loops=-1)
-
+    SCREEN.fill("black")
     while True:
         PLAY_MOUSE_POS = pygame.mouse.get_pos()
-
-        SCREEN.fill("black")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -58,14 +73,15 @@ def play():
                 if event.key == pygame.K_SPACE:
                     background_sound.stop()
                     return  # Retour au menu
-
                 if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN:
                     player_speed = 7
                 elif event.key == pygame.K_KP2 or event.key == pygame.K_UP:
                     player_speed = -7
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN or event.key == pygame.K_KP2 or event.key == pygame.K_UP:
-                    player_speed = 0
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN or event.key == pygame.K_KP2 or event.key == pygame.K_UP:
+                        player_speed = 0
+            if event.type == UPDATESPEEDEVENT:
+               player_speed = calculate_speed()
      
 
         player.y += player_speed
@@ -119,7 +135,7 @@ def play():
         SCREEN.blit(score_text2, (20, 10))
 
         pygame.display.update()
-        clock.tick(60)
+        elapsedTime = clock.tick(60)
 
 def options():
     while True:
@@ -181,9 +197,9 @@ def play_2_player():
     score1 = 0
     score2 = 0
 
-    bonus = pygame.mixer.Sound("bonus.mp3")
-    Schlag = pygame.mixer.Sound("Schlag.mp3")
-    background_sound = pygame.mixer.Sound("BrinstairRed.mp3")
+    bonus = pygame.mixer.Sound("src\PingPong\\bonus.mp3")
+    Schlag = pygame.mixer.Sound("src\PingPong\Schlag.mp3")
+    background_sound = pygame.mixer.Sound("src\PingPong\BrinstairRed.mp3")
     background_sound.play(loops=-1)
 
     while True:
@@ -278,11 +294,11 @@ def main_menu():
         MENU_TEXT = get_font(50).render("PONG GAME: MAIN MENU", True, "#b68f40")
         MENU_RECT = MENU_TEXT.get_rect(center=(screen_width / 2, screen_height / 4))
 
-        PLAY_BUTTON = Button(image=pygame.image.load("Play_Rect.png"), pos=(screen_width / 2, screen_height / (15/7) ),
+        PLAY_BUTTON = Button(image=pygame.image.load("src\PingPong\Play_Rect.png"), pos=(screen_width / 2, screen_height / (15/7) ),
                              text_input="PLAY", font=get_font(60), base_color="#d7fcd4", hovering_color="White")
-        OPTIONS_BUTTON = Button(image=pygame.image.load("Options_Rect.png"), pos=(screen_width / 2, screen_height / (15/10)),
+        OPTIONS_BUTTON = Button(image=pygame.image.load("src\PingPong\Options_Rect.png"), pos=(screen_width / 2, screen_height / (15/10)),
                                 text_input="OPTIONS", font=get_font(60), base_color="#d7fcd4", hovering_color="White")
-        QUIT_BUTTON = Button(image=pygame.image.load("Quit_Rect.png"), pos=(screen_width / 2, screen_height / (15/13)),
+        QUIT_BUTTON = Button(image=pygame.image.load("src\PingPong\Quit_Rect.png"), pos=(screen_width / 2, screen_height / (15/13)),
                              text_input="QUIT", font=get_font(60), base_color="#d7fcd4", hovering_color="White")
 
         SCREEN.blit(MENU_TEXT, MENU_RECT)
