@@ -6,7 +6,7 @@ import re
 from helper.reader import ReadLine
 from button import Button
 
-sensorData = serial.Serial('COM3', 115200,
+sensorData = serial.Serial('COM5', 115200,
                            parity=serial.PARITY_NONE,
                            stopbits=serial.STOPBITS_ONE,
                            bytesize=serial.EIGHTBITS,
@@ -17,7 +17,7 @@ compiledRegex = re.compile(r'[+-]?\d+(?:\.\d+)?')
 pygame.init()
 clock = pygame.time.Clock()
 UPDATESPEEDEVENT = pygame.USEREVENT+1
-pygame.time.set_timer(UPDATESPEEDEVENT,600)
+pygame.time.set_timer(UPDATESPEEDEVENT,5)
 
 screen_width = 1280
 screen_height = 560
@@ -87,9 +87,9 @@ def play():
                 data = controller.readline() 
                 if len(data) > 2:
                     parsedPacket = str(data, 'utf-8')
-                    speed = compiledRegex.findall(parsedPacket)[1]
+                    speed = compiledRegex.findall(parsedPacket)[0]
+                    print(speed)
                     player_speed = calculate_speed(int(speed))
-            print(player_speed)
      
 
         player.y += player_speed

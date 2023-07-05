@@ -293,7 +293,7 @@ static void read_gravity_data()
 		bno055.grav_x = (((uint16_t)read_i2c_buffer[1]) << 8) | ((uint16_t)read_i2c_buffer[0]);
 		bno055.grav_y = (((uint16_t)read_i2c_buffer[3]) << 8) | ((uint16_t)read_i2c_buffer[2]);
 		bno055.grav_z = (((uint16_t)read_i2c_buffer[5]) << 8) | ((uint16_t)read_i2c_buffer[4]);
-		printk("GRAVITY Data: X:%d Y:%d Z:%d\n", bno055.grav_x, bno055.grav_y, bno055.grav_z);
+		printk("%d,%d,%d\n", bno055.grav_x, bno055.grav_y, bno055.grav_z);
 	}
 }
 static void read_quaternion_data()
@@ -319,8 +319,8 @@ static void read_data()
 	read_gravity_data();
 	if (bno055.isCalibrated)
 	{
-		sleep_msec = 600;
-		smf_set_state(SMF_CTX(&s_obj), &states[SENDDATA]);
+		sleep_msec = 5;
+		smf_set_state(SMF_CTX(&s_obj), &states[READDATA]);
 	}
 	else
 	{
@@ -372,8 +372,7 @@ static void send_data()
 	otError error = OT_ERROR_NONE;
 
 	char buffer[50];
-	sprintf(buffer, "%s, %d, %d, %d, %d\n", moduleID, bno055.grav_x, bno055.grav_y, bno055.grav_z);
-	printk("Message start");
+	sprintf(buffer, "%d, %d, %d", bno055.grav_x, bno055.grav_y, bno055.grav_z);
 
 	otInstance *myInstance;
 	myInstance = openthread_get_default_instance();
@@ -414,13 +413,12 @@ static void send_data()
 	} while (false);
 	if (error == OT_ERROR_NONE)
 	{
-		printk("Send.\n");
+
 	}
 	else
 	{
 		printk("udpSend error: %d\n", error);
 	}
-	printk("Message done");
 	smf_set_state(SMF_CTX(&s_obj), &states[READDATA]);
 }
 static const struct smf_state states[] = {
