@@ -319,6 +319,7 @@ static void read_data()
 	read_gravity_data();
 	if (bno055.isCalibrated)
 	{
+		sleep_msec = 600;
 		smf_set_state(SMF_CTX(&s_obj), &states[SENDDATA]);
 	}
 	else
@@ -457,6 +458,7 @@ void main(void)
 	while (true)
 	{
 		ret = smf_run_state(SMF_CTX(&s_obj));
+		k_msleep(sleep_msec);
 		if (ret)
 		{
 			printk("Error: %d\n", ret);
