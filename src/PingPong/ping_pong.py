@@ -2,7 +2,6 @@ import pygame
 import sys
 import random
 import serial
-import re
 from helper.reader import ReadLine
 from button import Button
 
@@ -13,7 +12,6 @@ sensorData = serial.Serial('COM5', 115200,
                            timeout=1)
 
 controller = ReadLine(sensorData)
-compiledRegex = re.compile(r'[+-]?\d+(?:\.\d+)?')
 pygame.init()
 clock = pygame.time.Clock()
 UPDATESPEEDEVENT = pygame.USEREVENT+1
@@ -29,9 +27,11 @@ BG = pygame.image.load("src\PingPong\Background_image.png")
 def get_font(size):
     return pygame.font.Font("src\PingPong\\font.ttf", size)
 
-def calculate_speed(x_value):
-    player_speed = 7 * x_value / 1000
-    return player_speed
+def calculate_speed():
+    data = controller.readline() 
+    if len(data) > 2:
+        parsedPacket = str(data, 'utf-8')
+        return (7 * int(parsedPacket.split(",")[0])) / 1000
 
 def play():
     pygame.display.set_caption("Play")
@@ -61,11 +61,9 @@ def play():
     Schlag = pygame.mixer.Sound("src\PingPong\Schlag.mp3")
     background_sound = pygame.mixer.Sound("src\PingPong\BrinstairRed.mp3")
     background_sound.play(loops=-1)
-
+    SCREEN.fill("black")
     while True:
         PLAY_MOUSE_POS = pygame.mouse.get_pos()
-
-        SCREEN.fill("black")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -75,7 +73,6 @@ def play():
                 if event.key == pygame.K_SPACE:
                     background_sound.stop()
                     return  # Retour au menu
-
                 if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN:
                     player_speed = 7
                 elif event.key == pygame.K_KP2 or event.key == pygame.K_UP:
@@ -84,12 +81,7 @@ def play():
                     if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN or event.key == pygame.K_KP2 or event.key == pygame.K_UP:
                         player_speed = 0
             if event.type == UPDATESPEEDEVENT:
-                data = controller.readline() 
-                if len(data) > 2:
-                    parsedPacket = str(data, 'utf-8')
-                    speed = compiledRegex.findall(parsedPacket)[0]
-                    print(speed)
-                    player_speed = calculate_speed(int(speed))
+               player_speed = calculate_speed()
      
 
         player.y += player_speed
@@ -143,7 +135,7 @@ def play():
         SCREEN.blit(score_text2, (20, 10))
 
         pygame.display.update()
-        clock.tick(60)
+        elapsedTime = clock.tick(60)
 
 def options():
     while True:
