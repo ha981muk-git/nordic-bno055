@@ -4,6 +4,7 @@ import random
 import serial
 from helper.reader import ReadLine
 from button import Button
+import threading
 
 sensorData = serial.Serial('COM5', 115200,
                            parity=serial.PARITY_NONE,
@@ -15,7 +16,7 @@ controller = ReadLine(sensorData)
 pygame.init()
 clock = pygame.time.Clock()
 UPDATESPEEDEVENT = pygame.USEREVENT+1
-pygame.time.set_timer(UPDATESPEEDEVENT,5)
+pygame.time.set_timer(UPDATESPEEDEVENT, 60)
 
 screen_width = 1280
 screen_height = 560
@@ -27,11 +28,22 @@ BG = pygame.image.load("src\PingPong\Background_image.png")
 def get_font(size):
     return pygame.font.Font("src\PingPong\\font.ttf", size)
 
+speed_lock = threading.Lock()
+speed_value = 0
+
+def read_speed():
+    global speed_value
+    while True:
+        data = controller.readline()
+        if len(data) > 2:
+            parsedPacket = str(data, 'utf-8')
+            speed = (7 * int(parsedPacket.split(",")[0])) / 1000
+            with speed_lock:
+                speed_value = speed
+
 def calculate_speed():
-    data = controller.readline() 
-    if len(data) > 2:
-        parsedPacket = str(data, 'utf-8')
-        return (7 * int(parsedPacket.split(",")[0])) / 1000
+    with speed_lock:
+        return speed_value
 
 def play():
     pygame.display.set_caption("Play")
@@ -40,7 +52,6 @@ def play():
     player = pygame.Rect(screen_width - 20, screen_height/2 - 70, 10, 140)
     opponent = pygame.Rect(10, screen_height/2 - 70, 10, 140)
     score_font = pygame.font.Font(None, 48)
-    
 
     bg_color = pygame.Color('grey12')
     player_color = (0, 0, 200)
@@ -62,6 +73,12 @@ def play():
     background_sound = pygame.mixer.Sound("src\PingPong\BrinstairRed.mp3")
     background_sound.play(loops=-1)
     SCREEN.fill("black")
+
+    # Start the speed reading thread
+    speed_thread = threading.Thread(target=read_speed)
+    speed_thread.daemon = True
+    speed_thread.start()
+
     while True:
         PLAY_MOUSE_POS = pygame.mouse.get_pos()
 
@@ -77,12 +94,11 @@ def play():
                     player_speed = 7
                 elif event.key == pygame.K_KP2 or event.key == pygame.K_UP:
                     player_speed = -7
-                elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN or event.key == pygame.K_KP2 or event.key == pygame.K_UP:
-                        player_speed = 0
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_KP8 or event.key == pygame.K_DOWN or event.key == pygame.K_KP2 or event.key == pygame.K_UP:
+                    player_speed = 0
             if event.type == UPDATESPEEDEVENT:
-               player_speed = calculate_speed()
-     
+                player_speed = calculate_speed()
 
         player.y += player_speed
         if player.top <= 0:
@@ -112,7 +128,7 @@ def play():
             ball_speed_unit_y *= random.choice((1, -1))
             ball_speed_unit_x *= random.choice((1, -1))
             score2 += 1
-            bonus.play() 
+            bonus.play()
 
         if opponent.top < ball.y:
             opponent.top += opponent_speed
@@ -135,7 +151,8 @@ def play():
         SCREEN.blit(score_text2, (20, 10))
 
         pygame.display.update()
-        elapsedTime = clock.tick(60)
+        clock.tick(60)
+
 
 def options():
     while True:
@@ -323,12 +340,3 @@ def main_menu():
         pygame.display.update()
 
 main_menu()
-
-
-
-
-
-
-
-
-
