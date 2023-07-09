@@ -1,6 +1,8 @@
 from nordicBoard3d import *
 
-arduinoData = serial.Serial('/dev/tty.usbmodem0006839967901', 115200)
+nordicBoard = '/dev/tty.usbmodem0006838612801'
+
+arduinoData = serial.Serial(nordicBoard, 115200)
 sleep(1)
 
 roll, pitch, yaw = 0, 0, 0
@@ -62,4 +64,4 @@ while True:
     flag = 1
     rotatefhObj(rollFnew, pitchFnew, yawFnew, flag)
 
-    rollFold, pitchFold, yawFold = roll, pitch, yaw
+    rollFold, pitchFold, yawFold = rollFnew, pitchFnew, yawFnew

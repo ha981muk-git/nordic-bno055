@@ -1,11 +1,13 @@
 from nordicBoard3d import *
 
-arduinoData = serial.Serial('/dev/tty.usbmodem0006839967901', 115200)
+nordicBoard = '/dev/tty.usbmodem0006838612801'
+arduinoData = serial.Serial(nordicBoard, 115200)
 sleep(1)
 
-thetaG, phiG = 0, 0
 theta, phi = 0, 0
 thetaFold, phiFold = 0, 0
+thetaG, phiG = 0, 0
+
 
 def millis():
     return int(round(time_.time() * 1000))
@@ -25,7 +27,12 @@ while True:
 
     if len(dataPacket.split(',')) != 13:
         pass
+
     # just removed quaternions because we were working with acc,gyro,meg not with quaternions
+    qw = float(splitPacket[0]) * scale
+    qx = float(splitPacket[1]) * scale
+    qy = float(splitPacket[2]) * scale
+    qz = float(splitPacket[3]) * scale
     ax = float(splitPacket[4]) * scale
     ay = float(splitPacket[5]) * scale
     az = float(splitPacket[6]) * scale
@@ -72,10 +79,10 @@ while True:
     acc = math.sqrt(ax ** 2 + ay ** 2 + az ** 2)
     # print("acc = ", acc)
 
-    rollFnew = math.radians(theta)
-    yawFnew = math.radians(psi)
-    pitchFnew = math.radians(phi)
-    flag = -1
-    rotatefhObj(rollFnew, pitchFnew, yawFnew, flag)
+    roll = math.radians(thetaAFnew)
+    yaw = math.radians(psi)
+    pitch = math.radians(phiAFnew)
+    flag = 1
+    rotatefhObj(roll, pitch, yaw, flag)
 
-    thetaFold, phiFold = theta, phi
+    thetaFold, phiFold = thetaAFnew, phiAFnew

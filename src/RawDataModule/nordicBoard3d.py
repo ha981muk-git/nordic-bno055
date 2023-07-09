@@ -19,7 +19,7 @@ scene.forward = vector(-1, -1, -1)
 scene.width = 1980
 scene.height = 980
 
-scene.background = color.white
+scene.background = color.cyan
 
 posfhmodul = vector(0, 0, 0)
 
@@ -46,8 +46,7 @@ nordicdkcon2 = box(length=0.25, width=2.1, height=0.7, opacity=.75, pos=vec(0.65
 nordicdkcon3 = box(length=0.25, width=1.5, height=0.7, opacity=.75, pos=vec(5.54, 0.35, 7.9), color=vec(0.2, 0.2, 0.2))
 nordicdkcon4 = box(length=2.3, width=0.5, height=0.7, opacity=.75, pos=vec(1.9, 0.35, 4.0), color=vec(0.2, 0.2, 0.2))
 
-nordicboard = compound([nordicdkpcb, nrf52840, nordicdkcon1, nordicdkcon2, nordicdkcon3, nordicdkcon4],
-                       pos=vec(-3.2, -2.55, -10), origin=vec(0, 0, 0))
+nordicboard = compound([nordicdkpcb, nrf52840, nordicdkcon1, nordicdkcon2, nordicdkcon3, nordicdkcon4], pos=vec(-3.2, -2.55, -10), origin=vec(0, 0, 0))
 
 bridgepcb1 = box(length=5.3, width=1.8, height=.13, opacity=.75, pos=vec(2.65, 0, 0.9), color=vec(1, 0, 0))
 bridgepcb2 = box(length=1.5, width=0.9, height=.13, opacity=.75, pos=vec(0.75, 0, 2.25), color=vec(1, 0, 0))
@@ -74,6 +73,6 @@ def rotatefhObj(roll, pitch, yaw, flag):
     sideArrowfh.axis = cross(k, vrot)
     upArrowfh.axis = vrot
 
-    fhObj.axis = k * flag
+    fhObj.axis = k
     fhObj.up = vrot
     sideArrowfh.length, frontArrowfh.length, upArrowfh.length = 4, 4, 4
