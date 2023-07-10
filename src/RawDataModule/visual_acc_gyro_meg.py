@@ -74,7 +74,7 @@ while True:
     # acceleration
     acc = math.sqrt(ax ** 2 + ay ** 2 + az ** 2)
     # print("acc = ", acc)
-    print(thetaAFnew , phiAFnew, psi)
+    # print(thetaAFnew , phiAFnew, psi)
     # changing degree to radians because trignometric function uses only radians in python
     rollFnew = math.radians(thetaAFnew)
     yawFnew = math.radians(psi + 81) # adding to make nordicboard allign with kompass
@@ -101,6 +101,7 @@ while True:
     frontArrowfh.length = 4
     upArrowfh.length = 4
 
+    # testing
     # rotatefhObj(roll, pitch, yaw,  flag)
 
     thetaFold, phiFold = thetaA, phiA

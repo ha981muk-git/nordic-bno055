@@ -62,6 +62,7 @@ while True:
     y = vector(0, 1, 0)
     s = cross(k, y)
     v = cross(s, k)
+
     # applying the rotation vector to the obj
     vrot = v * cos(rollFnew) + cross(k, v) * -sin(rollFnew)
 

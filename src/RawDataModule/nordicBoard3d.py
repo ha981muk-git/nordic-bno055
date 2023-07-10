@@ -59,7 +59,6 @@ bridge = compound([bridgepcb1, bridgepcb2, bridgepcb3, bridgei2ccon, bridgepwcon
 
 fhObj = compound([bno055board, nordicboard, bridge], pos=posfhmodul, origin=vector(0, 0, 0))
 
-
 # name of microcontroller
 nordicBoard = '/dev/tty.usbmodem0006839967901'
 
