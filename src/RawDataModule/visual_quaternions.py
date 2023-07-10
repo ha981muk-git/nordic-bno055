@@ -19,13 +19,14 @@ while True:
 
     if len(dataPacket.split(',')) != 13:
         pass
-
+    # only working with Quaternions
     splitPacket = dataPacket.split(',')
     qw = float(splitPacket[0]) * scale
     qx = float(splitPacket[1]) * scale
     qy = float(splitPacket[2]) * scale
     qz = float(splitPacket[3]) * scale
 
+    # processing the row data to calculate roll, pitch and yaw
     unitLength = qw ** 2 + qx ** 2 + qy ** 2 + qz ** 2
     abcd = qw * qx + qy * qz
 
@@ -49,17 +50,19 @@ while True:
             pitch = asin(2 * abcd / unitLength)
             roll = atan2(2 * acbd, 1 - 2 * (qy ** 2 + qx ** 2))
 
+    # filtering it so that frequent changes can be reduced
     rollFnew = 0.95 * rollFold + 0.05 * roll
     yawFnew = 0.95 * yawFold + 0.05 * yaw
     pitchFnew = 0.95 * pitchFold + 0.05 * pitch
-    #print(roll * toDeg,pitch *toDeg,yaw*toDeg)
+    # print(roll * toDeg,pitch *toDeg,yaw*toDeg)
     pitchFnew = -pitchFnew
 
+    # calculating the rotation vector
     k = vector(cos(yawFnew) * cos(pitchFnew), sin(pitchFnew), sin(yawFnew) * cos(pitchFnew))
     y = vector(0, 1, 0)
     s = cross(k, y)
     v = cross(s, k)
-
+    # applying the rotation vector to the obj
     vrot = v * cos(rollFnew) + cross(k, v) * -sin(rollFnew)
 
     frontArrowfh.axis = k
@@ -73,6 +76,7 @@ while True:
     frontArrowfh.length = 4
     upArrowfh.length = 4
 
-    #rotatefhObj(rollFnew, pitchFnew, yawFnew, flag)
+    # testing roll, pitch and yaw and sending to rotation function
+    # rotatefhObj(rollFnew, pitchFnew, yawFnew, flag)
 
     rollFold, pitchFold, yawFold = roll, pitch, yaw

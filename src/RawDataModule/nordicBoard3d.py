@@ -1,11 +1,10 @@
-import math
 import sys
+import math
 import time as time_  # make sure we don't override time
 import numpy as np
 import serial
 from vpython import *
 
-# from src.euler_angles import Quaternion, EulerAngles, to_euler_angles, print_position
 print('Python %s on %s' % (sys.version, sys.platform))
 sys.path.extend(['/Users/harsh/PycharmProjects/nordic-bno055'])
 
@@ -60,9 +59,12 @@ bridge = compound([bridgepcb1, bridgepcb2, bridgepcb3, bridgei2ccon, bridgepwcon
 
 fhObj = compound([bno055board, nordicboard, bridge], pos=posfhmodul, origin=vector(0, 0, 0))
 
+
+# name of microcontroller
 nordicBoard = '/dev/tty.usbmodem0006839967901'
 
-'''
+''' 
+trying to factorise using function
 def rotatefhObj(roll, pitch, yaw, flag):
     k = vector(cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch))
     y = vector(0, 1, 0)

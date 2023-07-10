@@ -18,11 +18,15 @@ while True:
     while arduinoData.inWaiting() == 0:
         pass
     dataPacket = arduinoData.readline()
-
-    dataPacket = str(dataPacket, 'utf-8')
-
+    try:
+        dataPacket = str(dataPacket, 'utf-8')
+    except UnicodeDecodeError:
+        pass
     splitPacket = dataPacket.split(',')
 
+    if len(dataPacket.split(',')) != 13:
+        pass
+    # reading data from nordic microcontroller
     # just removed quaternions because we were working with acc,gyro,meg not with quaternions
     ax = float(splitPacket[4]) * scale
     ay = float(splitPacket[5]) * scale
@@ -35,18 +39,19 @@ while True:
     mz = float(splitPacket[12]) * scale
 
     # DETERMINE TILT FROM 3-AXIS ACCELEROMETER
-    thetaA = -atan2(ax , az) / 2 / 3.141592654 * 360
-    phiA = -atan2(ay, az ) / 2 / 3.141592654 * 360
+    thetaA = -atan2(ax / 9.8, az / 9.8) / 2 / 3.141592654 * 360
+    phiA = -atan2(ay / 9.8, az / 9.8) / 2 / 3.141592654 * 360
+
     # theta is angle with plain surface (pitch) and phi(roll) and data is being filtered here
     phiAFnew = 0.95 * phiFold + 0.05 * phiA
     thetaAFnew = 0.95 * thetaFold + 0.05 * thetaA
 
-    # Gyro measures the angular velocity of hardware with surface and roll
     dt = (millis() - millisOld) / 1000.
     millisOld = millis()
 
-    theta = (theta + gy * dt) * 0.95 + thetaA * 0.05  # v = u + at
-    phi = (phi - gx * dt) * 0.95 + phiA * 0.05
+    # Gyro measures the angular velocity of hardware with surface and roll
+    theta = (theta + gy * dt) * 0.85 + thetaA * 0.15  # v = u + at
+    phi = (phi - gx * dt) * 0.85 + phiA * 0.15
 
     thetaG = thetaG + gy * dt  # v = u + at
     phiG = phi - gx * dt
@@ -69,23 +74,26 @@ while True:
     # acceleration
     acc = math.sqrt(ax ** 2 + ay ** 2 + az ** 2)
     # print("acc = ", acc)
-
+    print(thetaAFnew , phiAFnew, psi)
+    # changing degree to radians because trignometric function uses only radians in python
     rollFnew = math.radians(thetaAFnew)
-    yawFnew = math.radians(psi)
-    pitchFnew = -math.radians(phiAFnew)
-    print(rollFnew * toDeg, pitchFnew * toDeg, yawFnew * toDeg)
+    yawFnew = math.radians(psi + 81) # adding to make nordicboard allign with kompass
+    pitchFnew = math.radians(-phiAFnew)
 
+    # calculate the rotation vector
     k = vector(cos(yawFnew) * cos(pitchFnew), sin(pitchFnew), sin(yawFnew) * cos(pitchFnew))
     y = vector(0, 1, 0)
     s = cross(k, y)
     v = cross(s, k)
 
+    # applying the rotation to the object
     vrot = v * cos(rollFnew) + cross(k, v) * sin(rollFnew)
 
     frontArrowfh.axis = k
     sideArrowfh.axis = cross(k, vrot)
     upArrowfh.axis = vrot
 
+    # accelerometer gives visual not accurate as quaternions
     fhObj.axis = k
     fhObj.up = vrot
 
@@ -93,7 +101,6 @@ while True:
     frontArrowfh.length = 4
     upArrowfh.length = 4
 
-    #flag = 1
-    #rotatefhObj(roll, pitch, yaw,  flag)
+    # rotatefhObj(roll, pitch, yaw,  flag)
 
     thetaFold, phiFold = thetaA, phiA
