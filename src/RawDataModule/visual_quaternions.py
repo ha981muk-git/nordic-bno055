@@ -1,7 +1,5 @@
 from nordicBoard3d import *
 
-nordicBoard = '/dev/tty.usbmodem0006838612801'
-
 arduinoData = serial.Serial(nordicBoard, 115200)
 sleep(1)
 
@@ -28,13 +26,6 @@ while True:
     qy = float(splitPacket[2]) * scale
     qz = float(splitPacket[3]) * scale
 
-    # print("qw", qw, "qx", qx, "qy", qy, "qz", qz)
-    sqw = qw * qw
-    sqx = qx * qx
-    sqy = qy * qy
-    sqz = qz * qz
-    test = qx * qy + qz * qw
-
     unitLength = qw ** 2 + qx ** 2 + qy ** 2 + qz ** 2
     abcd = qw * qx + qy * qz
 
@@ -58,10 +49,30 @@ while True:
             pitch = asin(2 * abcd / unitLength)
             roll = atan2(2 * acbd, 1 - 2 * (qy ** 2 + qx ** 2))
 
-    rollFnew = 0.90 * rollFold + 0.1 * roll
-    yawFnew = 0.90 * yawFold + 0.1 * yaw
-    pitchFnew = 0.90 * pitchFold + 0.1 * pitch
-    flag = 1
-    rotatefhObj(rollFnew, pitchFnew, yawFnew, flag)
+    rollFnew = 0.95 * rollFold + 0.05 * roll
+    yawFnew = 0.95 * yawFold + 0.05 * yaw
+    pitchFnew = 0.95 * pitchFold + 0.05 * pitch
+    #print(roll * toDeg,pitch *toDeg,yaw*toDeg)
+    pitchFnew = -pitchFnew
 
-    rollFold, pitchFold, yawFold = rollFnew, pitchFnew, yawFnew
+    k = vector(cos(yawFnew) * cos(pitchFnew), sin(pitchFnew), sin(yawFnew) * cos(pitchFnew))
+    y = vector(0, 1, 0)
+    s = cross(k, y)
+    v = cross(s, k)
+
+    vrot = v * cos(rollFnew) + cross(k, v) * -sin(rollFnew)
+
+    frontArrowfh.axis = k
+    sideArrowfh.axis = cross(k, vrot)
+    upArrowfh.axis = vrot
+
+    fhObj.axis = -k
+    fhObj.up = vrot
+
+    sideArrowfh.length = 4
+    frontArrowfh.length = 4
+    upArrowfh.length = 4
+
+    #rotatefhObj(rollFnew, pitchFnew, yawFnew, flag)
+
+    rollFold, pitchFold, yawFold = roll, pitch, yaw

@@ -1,6 +1,5 @@
 from nordicBoard3d import *
 
-nordicBoard = '/dev/tty.usbmodem0006838612801'
 arduinoData = serial.Serial(nordicBoard, 115200)
 sleep(1)
 
@@ -19,20 +18,12 @@ while True:
     while arduinoData.inWaiting() == 0:
         pass
     dataPacket = arduinoData.readline()
-    try:
-        dataPacket = str(dataPacket, 'utf-8')
-    except UnicodeDecodeError:
-        pass
+
+    dataPacket = str(dataPacket, 'utf-8')
+
     splitPacket = dataPacket.split(',')
 
-    if len(dataPacket.split(',')) != 13:
-        pass
-
     # just removed quaternions because we were working with acc,gyro,meg not with quaternions
-    qw = float(splitPacket[0]) * scale
-    qx = float(splitPacket[1]) * scale
-    qy = float(splitPacket[2]) * scale
-    qz = float(splitPacket[3]) * scale
     ax = float(splitPacket[4]) * scale
     ay = float(splitPacket[5]) * scale
     az = float(splitPacket[6]) * scale
@@ -44,8 +35,8 @@ while True:
     mz = float(splitPacket[12]) * scale
 
     # DETERMINE TILT FROM 3-AXIS ACCELEROMETER
-    thetaA = -atan2(ax / 9.8, az / 9.8) / 2 / 3.141592654 * 360
-    phiA = -atan2(ay / 9.8, az / 9.8) / 2 / 3.141592654 * 360
+    thetaA = -atan2(ax , az) / 2 / 3.141592654 * 360
+    phiA = -atan2(ay, az ) / 2 / 3.141592654 * 360
     # theta is angle with plain surface (pitch) and phi(roll) and data is being filtered here
     phiAFnew = 0.95 * phiFold + 0.05 * phiA
     thetaAFnew = 0.95 * thetaFold + 0.05 * thetaA
@@ -79,10 +70,30 @@ while True:
     acc = math.sqrt(ax ** 2 + ay ** 2 + az ** 2)
     # print("acc = ", acc)
 
-    roll = math.radians(thetaAFnew)
-    yaw = math.radians(psi)
-    pitch = math.radians(phiAFnew)
-    flag = 1
-    rotatefhObj(roll, pitch, yaw, flag)
+    rollFnew = math.radians(thetaAFnew)
+    yawFnew = math.radians(psi)
+    pitchFnew = -math.radians(phiAFnew)
+    print(rollFnew * toDeg, pitchFnew * toDeg, yawFnew * toDeg)
 
-    thetaFold, phiFold = thetaAFnew, phiAFnew
+    k = vector(cos(yawFnew) * cos(pitchFnew), sin(pitchFnew), sin(yawFnew) * cos(pitchFnew))
+    y = vector(0, 1, 0)
+    s = cross(k, y)
+    v = cross(s, k)
+
+    vrot = v * cos(rollFnew) + cross(k, v) * sin(rollFnew)
+
+    frontArrowfh.axis = k
+    sideArrowfh.axis = cross(k, vrot)
+    upArrowfh.axis = vrot
+
+    fhObj.axis = k
+    fhObj.up = vrot
+
+    sideArrowfh.length = 4
+    frontArrowfh.length = 4
+    upArrowfh.length = 4
+
+    #flag = 1
+    #rotatefhObj(roll, pitch, yaw,  flag)
+
+    thetaFold, phiFold = thetaA, phiA
