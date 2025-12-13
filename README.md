@@ -125,15 +125,6 @@ Edit `CMakeLists.txt` to enable different modules:
 
 This project does not currently specify a license. Consider adding one for clarity on usage rights.
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! 
-
-## 👤 Author
-
-**ha981muk-git**
-- GitHub: [@ha981muk-git](https://github.com/ha981muk-git)
-
 ---
 
 **Note**: This project uses the Zephyr RTOS and is designed for Nordic Semiconductor microcontrollers.  Ensure you have the proper development environment set up before building.
