@@ -125,7 +125,6 @@ Edit `CMakeLists.txt` to enable different modules:
 
 This project does not currently specify a license. Consider adding one for clarity on usage rights.
 
----
 
 **Note**: This project uses the Zephyr RTOS and is designed for Nordic Semiconductor microcontrollers.  Ensure you have the proper development environment set up before building.
 ```
